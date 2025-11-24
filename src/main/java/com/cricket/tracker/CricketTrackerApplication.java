@@ -13,8 +13,8 @@ public class CricketTrackerApplication {
     public static void main(String[] args) {
         SpringApplication.run(CricketTrackerApplication.class, args);
         System.out.println("\n==============================================");
-        System.out.println("🏏 Cricket Tracker Application Started!");
-        System.out.println("📊 Access the application at: http://localhost:8080");
+        System.out.println("Cricket Tracker Application Started!");
+        System.out.println("Access the application at: http://localhost:8080");
         System.out.println("==============================================\n");
     }
 }
