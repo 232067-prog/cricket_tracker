@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Match - Cricket Tracker</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a href="/" class="navbar-brand">
+                <span class="icon">🏏</span>
+                Cricket Tracker
+            </a>
+            <button class="menu-toggle">☰</button>
+            <ul class="navbar-menu">
+                <li><a href="/">Dashboard</a></li>
+                <li><a href="/matches/add">Add Match</a></li>
+                <li><a href="/matches/history">History</a></li>
+                <li><a href="/matches/statistics">Statistics</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">➕ Add New Match</h1>
+                <p class="page-subtitle">Record your latest cricket performance</p>
+            </div>
+
+            <!-- Alert Messages -->
+            <div th:if="${successMessage}" class="alert alert-success">
+                <span th:text="${successMessage}"></span>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-error">
+                <span th:text="${errorMessage}"></span>
+            </div>
+
+            <!-- Add Match Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Match Details</h2>
+                </div>
+
+                <form th:action="@{/matches/add}" th:object="${match}" method="post"
+                    onsubmit="return validateMatchForm(this)">
+                    <!-- Match Information -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="matchDate" class="form-label required">Match Date</label>
+                            <input type="date" id="matchDate" th:field="*{matchDate}" class="form-control" required>
+                            <div class="form-error" th:if="${#fields.hasErrors('matchDate')}" th:errors="*{matchDate}">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="opponentName" class="form-label required">Opponent Name</label>
+                            <input type="text" id="opponentName" th:field="*{opponentName}" class="form-control"
+                                placeholder="e.g., City Cricket Club" required>
+                            <div class="form-error" th:if="${#fields.hasErrors('opponentName')}"
+                                th:errors="*{opponentName}"></div>
+                        </div>
+                    </div>
+
+                    <!-- Batting Statistics -->
+                    <h3 style="margin: 2rem 0 1rem; color: var(--text-secondary);">🏏 Batting Performance</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="runsScored" class="form-label">Runs Scored</label>
+                            <input type="number" id="runsScored" th:field="*{runsScored}" class="form-control" min="0"
+                                value="0" placeholder="0">
+                            <div class="form-error" th:if="${#fields.hasErrors('runsScored')}"
+                                th:errors="*{runsScored}"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="ballsFaced" class="form-label">Balls Faced</label>
+                            <input type="number" id="ballsFaced" th:field="*{ballsFaced}" class="form-control" min="0"
+                                value="0" placeholder="0">
+                            <div class="form-error" th:if="${#fields.hasErrors('ballsFaced')}"
+                                th:errors="*{ballsFaced}"></div>
+                        </div>
+                    </div>
+
+                    <!-- Bowling Statistics -->
+                    <h3 style="margin: 2rem 0 1rem; color: var(--text-secondary);">🎳 Bowling Performance</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="wicketsTaken" class="form-label">Wickets Taken</label>
+                            <input type="number" id="wicketsTaken" th:field="*{wicketsTaken}" class="form-control"
+                                min="0" value="0" placeholder="0">
+                            <div class="form-error" th:if="${#fields.hasErrors('wicketsTaken')}"
+                                th:errors="*{wicketsTaken}"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="oversBowled" class="form-label">Overs Bowled</label>
+                            <input type="number" id="oversBowled" th:field="*{oversBowled}" class="form-control" min="0"
+                                step="0.1" value="0" placeholder="0.0">
+                            <div class="form-error" th:if="${#fields.hasErrors('oversBowled')}"
+                                th:errors="*{oversBowled}"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="runsConceded" class="form-label">Runs Conceded</label>
+                            <input type="number" id="runsConceded" th:field="*{runsConceded}" class="form-control"
+                                min="0" value="0" placeholder="0">
+                            <div class="form-error" th:if="${#fields.hasErrors('runsConceded')}"
+                                th:errors="*{runsConceded}"></div>
+                        </div>
+                    </div>
+
+                    <!-- Fielding Statistics -->
+                    <h3 style="margin: 2rem 0 1rem; color: var(--text-secondary);">🧤 Fielding Performance</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="catches" class="form-label">Catches</label>
+                            <input type="number" id="catches" th:field="*{catches}" class="form-control" min="0"
+                                value="0" placeholder="0">
+                            <div class="form-error" th:if="${#fields.hasErrors('catches')}" th:errors="*{catches}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="btn-group" style="margin-top: 2rem;">
+                        <button type="submit" class="btn btn-primary">💾 Save Match</button>
+                        <a href="/" class="btn btn-secondary">❌ Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Cricket Tracker. Built for local cricket players. 🏏</p>
+        </div>
+    </footer>
+
+    <script th:src="@{/js/script.js}"></script>
+</body>
+
+</html>

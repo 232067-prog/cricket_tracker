@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistics - Cricket Tracker</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a href="/" class="navbar-brand">
+                <span class="icon">🏏</span>
+                Cricket Tracker
+            </a>
+            <button class="menu-toggle">☰</button>
+            <ul class="navbar-menu">
+                <li><a href="/">Dashboard</a></li>
+                <li><a href="/matches/add">Add Match</a></li>
+                <li><a href="/matches/history">History</a></li>
+                <li><a href="/matches/statistics">Statistics</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">📊 Detailed Statistics</h1>
+                <p class="page-subtitle">Comprehensive analysis of your cricket performance</p>
+            </div>
+
+            <!-- Overall Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-label">Total Matches</div>
+                    <div class="stat-value" th:text="${stats.totalMatches}">0</div>
+                </div>
+
+                <div class="stat-card success">
+                    <div class="stat-icon">🏃</div>
+                    <div class="stat-label">Total Runs</div>
+                    <div class="stat-value" th:text="${stats.totalRuns}">0</div>
+                </div>
+
+                <div class="stat-card warning">
+                    <div class="stat-icon">🎳</div>
+                    <div class="stat-label">Total Wickets</div>
+                    <div class="stat-value" th:text="${stats.totalWickets}">0</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">🧤</div>
+                    <div class="stat-label">Total Catches</div>
+                    <div class="stat-value" th:text="${stats.totalCatches}">0</div>
+                </div>
+            </div>
+
+            <!-- Batting Statistics -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🏏 Batting Statistics</h2>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Batting Average</div>
+                        <div class="stat-value" th:text="${#numbers.formatDecimal(stats.overallBattingAverage, 1, 2)}">
+                            0.00</div>
+                    </div>
+
+                    <div class="stat-card success">
+                        <div class="stat-label">Strike Rate</div>
+                        <div class="stat-value" th:text="${#numbers.formatDecimal(stats.overallStrikeRate, 1, 2)}">0.00
+                        </div>
+                    </div>
+
+                    <div class="stat-card warning">
+                        <div class="stat-label">Highest Score</div>
+                        <div class="stat-value" th:text="${stats.highestScore}">0</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-label">Total Balls Faced</div>
+                        <div class="stat-value" th:text="${stats.totalBallsFaced}">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bowling Statistics -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🎳 Bowling Statistics</h2>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Bowling Average</div>
+                        <div class="stat-value" th:text="${#numbers.formatDecimal(stats.overallBowlingAverage, 1, 2)}">
+                            0.00</div>
+                    </div>
+
+                    <div class="stat-card success">
+                        <div class="stat-label">Economy Rate</div>
+                        <div class="stat-value" th:text="${#numbers.formatDecimal(stats.overallEconomyRate, 1, 2)}">0.00
+                        </div>
+                    </div>
+
+                    <div class="stat-card warning">
+                        <div class="stat-label">Best Bowling</div>
+                        <div class="stat-value" th:text="${stats.bestBowlingWickets} + '/...'">0</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-label">Total Overs</div>
+                        <div class="stat-value" th:text="${#numbers.formatDecimal(stats.totalOversBowled, 1, 1)}">0.0
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fielding Statistics -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🧤 Fielding Statistics</h2>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Catches</div>
+                        <div class="stat-value" th:text="${stats.totalCatches}">0</div>
+                    </div>
+
+                    <div class="stat-card success">
+                        <div class="stat-label">Most Catches in Match</div>
+                        <div class="stat-value" th:text="${stats.mostCatches}">0</div>
+                    </div>
+
+                    <div class="stat-card warning">
+                        <div class="stat-label">Catches per Match</div>
+                        <div class="stat-value"
+                            th:text="${stats.totalMatches > 0 ? #numbers.formatDecimal(stats.totalCatches * 1.0 / stats.totalMatches, 1, 2) : '0.00'}">
+                            0.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Summary -->
+            <div class="card" th:if="${!matches.isEmpty()}">
+                <div class="card-header">
+                    <h2 class="card-title">📈 Performance Summary</h2>
+                </div>
+                <div style="padding: 1rem;">
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        You have played <strong th:text="${stats.totalMatches}">0</strong> matches,
+                        scoring a total of <strong th:text="${stats.totalRuns}">0</strong> runs
+                        and taking <strong th:text="${stats.totalWickets}">0</strong> wickets.
+                    </p>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        Your batting average is <strong
+                            th:text="${#numbers.formatDecimal(stats.overallBattingAverage, 1, 2)}">0.00</strong>
+                        with a strike rate of <strong
+                            th:text="${#numbers.formatDecimal(stats.overallStrikeRate, 1, 2)}">0.00</strong>.
+                    </p>
+                    <p style="color: var(--text-secondary);" th:if="${stats.totalWickets > 0}">
+                        As a bowler, your average is <strong
+                            th:text="${#numbers.formatDecimal(stats.overallBowlingAverage, 1, 2)}">0.00</strong>
+                        with an economy rate of <strong
+                            th:text="${#numbers.formatDecimal(stats.overallEconomyRate, 1, 2)}">0.00</strong>.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="card" th:if="${matches.isEmpty()}">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📊</div>
+                    <div class="empty-state-text">No statistics available</div>
+                    <p>Start adding matches to see your performance statistics!</p>
+                    <a href="/matches/add" class="btn btn-primary">Add Your First Match</a>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="btn-group" style="margin-top: 2rem;">
+                <a href="/matches/add" class="btn btn-primary">➕ Add New Match</a>
+                <a href="/matches/history" class="btn btn-secondary">📜 View History</a>
+                <a href="/" class="btn btn-success">🏠 Back to Dashboard</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Cricket Tracker. Built for local cricket players. 🏏</p>
+        </div>
+    </footer>
+
+    <script th:src="@{/js/script.js}"></script>
+</body>
+
+</html>

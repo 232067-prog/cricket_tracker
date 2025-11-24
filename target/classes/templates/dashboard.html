@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cricket Tracker - Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a href="/" class="navbar-brand">
+                <span class="icon">🏏</span>
+                Cricket Tracker
+            </a>
+            <button class="menu-toggle">☰</button>
+            <ul class="navbar-menu">
+                <li><a href="/">Dashboard</a></li>
+                <li><a href="/matches/add">Add Match</a></li>
+                <li><a href="/matches/history">History</a></li>
+                <li><a href="/matches/statistics">Statistics</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">🏏 Cricket Performance Tracker</h1>
+                <p class="page-subtitle">Track your cricket journey, one match at a time</p>
+            </div>
+
+            <!-- Alert Messages -->
+            <div th:if="${successMessage}" class="alert alert-success">
+                <span th:text="${successMessage}"></span>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-error">
+                <span th:text="${errorMessage}"></span>
+            </div>
+
+            <!-- Statistics Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-label">Total Matches</div>
+                    <div class="stat-value" th:text="${stats.totalMatches}">0</div>
+                </div>
+
+                <div class="stat-card success">
+                    <div class="stat-icon">🏃</div>
+                    <div class="stat-label">Total Runs</div>
+                    <div class="stat-value" th:text="${stats.totalRuns}">0</div>
+                </div>
+
+                <div class="stat-card warning">
+                    <div class="stat-icon">🎳</div>
+                    <div class="stat-label">Total Wickets</div>
+                    <div class="stat-value" th:text="${stats.totalWickets}">0</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-label">Batting Average</div>
+                    <div class="stat-value" th:text="${#numbers.formatDecimal(stats.overallBattingAverage, 1, 2)}">0.00</div>
+                </div>
+
+                <div class="stat-card success">
+                    <div class="stat-icon">⚡</div>
+                    <div class="stat-label">Strike Rate</div>
+                    <div class="stat-value" th:text="${#numbers.formatDecimal(stats.overallStrikeRate, 1, 2)}">0.00</div>
+                </div>
+
+                <div class="stat-card warning">
+                    <div class="stat-icon">🎖️</div>
+                    <div class="stat-label">Highest Score</div>
+                    <div class="stat-value" th:text="${stats.highestScore}">0</div>
+                </div>
+            </div>
+
+            <!-- Recent Matches -->
+            <div class="card" th:if="${!recentMatches.isEmpty()}">
+                <div class="card-header">
+                    <h2 class="card-title">📋 Recent Matches</h2>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Opponent</th>
+                                <th>Runs</th>
+                                <th>Wickets</th>
+                                <th>Strike Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="match : ${recentMatches}">
+                                <td th:text="${#temporals.format(match.matchDate, 'dd MMM yyyy')}"></td>
+                                <td th:text="${match.opponentName}"></td>
+                                <td th:text="${match.runsScored}"></td>
+                                <td th:text="${match.wicketsTaken}"></td>
+                                <td th:text="${#numbers.formatDecimal(match.strikeRate, 1, 2)}"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="card" th:if="${recentMatches.isEmpty()}">
+                <div class="empty-state">
+                    <div class="empty-state-icon">🏏</div>
+                    <div class="empty-state-text">No matches recorded yet</div>
+                    <p>Start tracking your cricket performance by adding your first match!</p>
+                    <a href="/matches/add" class="btn btn-primary">Add Your First Match</a>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="btn-group" style="margin-top: 2rem;">
+                <a href="/matches/add" class="btn btn-primary">➕ Add New Match</a>
+                <a href="/matches/history" class="btn btn-secondary">📜 View All Matches</a>
+                <a href="/matches/statistics" class="btn btn-success">📊 Detailed Statistics</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Cricket Tracker. Built for local cricket players. 🏏</p>
+        </div>
+    </footer>
+
+    <script th:src="@{/js/script.js}"></script>
+</body>
+</html>
