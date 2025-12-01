@@ -1,0 +1,52 @@
+{
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/matches/add",
+        "destination": "/add-match.html"
+      },
+      {
+        "source": "/matches/history",
+        "destination": "/match-history.html"
+      },
+      {
+        "source": "/matches/edit",
+        "destination": "/edit-match.html"
+      },
+      {
+        "source": "/matches/statistics",
+        "destination": "/statistics.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(jpg|jpeg|gif|png|svg|webp|js|css)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=31536000"
+          }
+        ]
+      }
+    ]
+  }
+}

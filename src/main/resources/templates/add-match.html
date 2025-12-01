@@ -1,11 +1,50 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Match - Cricket Tracker</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .user-email {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-right: 1rem;
+        }
+
+        .btn-logout {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-logout:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .alert {
+            display: none;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .alert.show {
+            display: block;
+        }
+    </style>
 </head>
 
 <body>
@@ -22,6 +61,10 @@
                 <li><a href="/matches/add">Add Match</a></li>
                 <li><a href="/matches/history">History</a></li>
                 <li><a href="/matches/statistics">Statistics</a></li>
+                <li class="user-profile" id="userProfile" style="display: none;">
+                    <span class="user-email" id="userEmail"></span>
+                    <button class="btn-logout" id="logoutBtn">Logout</button>
+                </li>
             </ul>
         </div>
     </nav>
@@ -36,12 +79,8 @@
             </div>
 
             <!-- Alert Messages -->
-            <div th:if="${successMessage}" class="alert alert-success">
-                <span th:text="${successMessage}"></span>
-            </div>
-            <div th:if="${errorMessage}" class="alert alert-error">
-                <span th:text="${errorMessage}"></span>
-            </div>
+            <div id="successAlert" class="alert alert-success"></div>
+            <div id="errorAlert" class="alert alert-error"></div>
 
             <!-- Add Match Form -->
             <div class="card">
@@ -49,23 +88,18 @@
                     <h2 class="card-title">Match Details</h2>
                 </div>
 
-                <form th:action="@{/matches/add}" th:object="${match}" method="post"
-                    onsubmit="return validateMatchForm(this)">
+                <form id="matchForm">
                     <!-- Match Information -->
                     <div class="form-row">
                         <div class="form-group">
                             <label for="matchDate" class="form-label required">Match Date</label>
-                            <input type="date" id="matchDate" th:field="*{matchDate}" class="form-control" required>
-                            <div class="form-error" th:if="${#fields.hasErrors('matchDate')}" th:errors="*{matchDate}">
-                            </div>
+                            <input type="date" id="matchDate" name="matchDate" class="form-control" required>
                         </div>
 
                         <div class="form-group">
                             <label for="opponentName" class="form-label required">Opponent Name</label>
-                            <input type="text" id="opponentName" th:field="*{opponentName}" class="form-control"
+                            <input type="text" id="opponentName" name="opponentName" class="form-control"
                                 placeholder="e.g., City Cricket Club" required>
-                            <div class="form-error" th:if="${#fields.hasErrors('opponentName')}"
-                                th:errors="*{opponentName}"></div>
                         </div>
                     </div>
 
@@ -74,18 +108,14 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="runsScored" class="form-label">Runs Scored</label>
-                            <input type="number" id="runsScored" th:field="*{runsScored}" class="form-control" min="0"
+                            <input type="number" id="runsScored" name="runsScored" class="form-control" min="0"
                                 value="0" placeholder="0">
-                            <div class="form-error" th:if="${#fields.hasErrors('runsScored')}"
-                                th:errors="*{runsScored}"></div>
                         </div>
 
                         <div class="form-group">
                             <label for="ballsFaced" class="form-label">Balls Faced</label>
-                            <input type="number" id="ballsFaced" th:field="*{ballsFaced}" class="form-control" min="0"
+                            <input type="number" id="ballsFaced" name="ballsFaced" class="form-control" min="0"
                                 value="0" placeholder="0">
-                            <div class="form-error" th:if="${#fields.hasErrors('ballsFaced')}"
-                                th:errors="*{ballsFaced}"></div>
                         </div>
                     </div>
 
@@ -94,26 +124,20 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="wicketsTaken" class="form-label">Wickets Taken</label>
-                            <input type="number" id="wicketsTaken" th:field="*{wicketsTaken}" class="form-control"
-                                min="0" value="0" placeholder="0">
-                            <div class="form-error" th:if="${#fields.hasErrors('wicketsTaken')}"
-                                th:errors="*{wicketsTaken}"></div>
+                            <input type="number" id="wicketsTaken" name="wicketsTaken" class="form-control" min="0"
+                                value="0" placeholder="0">
                         </div>
 
                         <div class="form-group">
                             <label for="oversBowled" class="form-label">Overs Bowled</label>
-                            <input type="number" id="oversBowled" th:field="*{oversBowled}" class="form-control" min="0"
+                            <input type="number" id="oversBowled" name="oversBowled" class="form-control" min="0"
                                 step="0.1" value="0" placeholder="0.0">
-                            <div class="form-error" th:if="${#fields.hasErrors('oversBowled')}"
-                                th:errors="*{oversBowled}"></div>
                         </div>
 
                         <div class="form-group">
                             <label for="runsConceded" class="form-label">Runs Conceded</label>
-                            <input type="number" id="runsConceded" th:field="*{runsConceded}" class="form-control"
-                                min="0" value="0" placeholder="0">
-                            <div class="form-error" th:if="${#fields.hasErrors('runsConceded')}"
-                                th:errors="*{runsConceded}"></div>
+                            <input type="number" id="runsConceded" name="runsConceded" class="form-control" min="0"
+                                value="0" placeholder="0">
                         </div>
                     </div>
 
@@ -122,16 +146,14 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="catches" class="form-label">Catches</label>
-                            <input type="number" id="catches" th:field="*{catches}" class="form-control" min="0"
-                                value="0" placeholder="0">
-                            <div class="form-error" th:if="${#fields.hasErrors('catches')}" th:errors="*{catches}">
-                            </div>
+                            <input type="number" id="catches" name="catches" class="form-control" min="0" value="0"
+                                placeholder="0">
                         </div>
                     </div>
 
                     <!-- Form Actions -->
                     <div class="btn-group" style="margin-top: 2rem;">
-                        <button type="submit" class="btn btn-primary">💾 Save Match</button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">💾 Save Match</button>
                         <a href="/" class="btn btn-secondary">❌ Cancel</a>
                     </div>
                 </form>
@@ -146,7 +168,113 @@
         </div>
     </footer>
 
-    <script th:src="@{/js/script.js}"></script>
+    <script src="/js/script.js"></script>
+    <script type="module">
+        import { requireAuth, signOut, addMatch } from '/js/firestore-service.js';
+
+        // Initialize page
+        async function initializePage() {
+            try {
+                const user = await requireAuth();
+                document.getElementById('userEmail').textContent = user.email;
+                document.getElementById('userProfile').style.display = 'flex';
+            } catch (error) {
+                console.error('Initialization error:', error);
+            }
+        }
+
+        // Show alert
+        function showAlert(message, isSuccess = false) {
+            const successAlert = document.getElementById('successAlert');
+            const errorAlert = document.getElementById('errorAlert');
+
+            if (isSuccess) {
+                successAlert.textContent = message;
+                successAlert.classList.add('show');
+                errorAlert.classList.remove('show');
+            } else {
+                errorAlert.textContent = message;
+                errorAlert.classList.add('show');
+                successAlert.classList.remove('show');
+            }
+
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                successAlert.classList.remove('show');
+                errorAlert.classList.remove('show');
+            }, 5000);
+        }
+
+        // Handle form submission
+        document.getElementById('matchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                matchDate: document.getElementById('matchDate').value,
+                opponentName: document.getElementById('opponentName').value.trim(),
+                runsScored: parseInt(document.getElementById('runsScored').value) || 0,
+                ballsFaced: parseInt(document.getElementById('ballsFaced').value) || 0,
+                wicketsTaken: parseInt(document.getElementById('wicketsTaken').value) || 0,
+                oversBowled: parseFloat(document.getElementById('oversBowled').value) || 0,
+                runsConceded: parseInt(document.getElementById('runsConceded').value) || 0,
+                catches: parseInt(document.getElementById('catches').value) || 0
+            };
+
+            // Validation
+            if (!formData.matchDate) {
+                showAlert('Please select a match date', false);
+                return;
+            }
+
+            if (!formData.opponentName || formData.opponentName.length < 2) {
+                showAlert('Opponent name must be at least 2 characters', false);
+                return;
+            }
+
+            // Check date is not in future
+            const selectedDate = new Date(formData.matchDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (selectedDate > today) {
+                showAlert('Match date cannot be in the future', false);
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '💾 Saving...';
+
+            try {
+                await addMatch(formData);
+                showAlert('Match added successfully!', true);
+
+                // Reset form
+                document.getElementById('matchForm').reset();
+
+                // Redirect to dashboard after 1.5 seconds
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1500);
+            } catch (error) {
+                console.error('Error adding match:', error);
+                showAlert('Failed to add match. Please try again.', false);
+                submitBtn.disabled = false;
+                submitBtn.textContent = '💾 Save Match';
+            }
+        });
+
+        // Handle logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                await signOut();
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        });
+
+        // Initialize
+        initializePage();
+    </script>
 </body>
 
 </html>

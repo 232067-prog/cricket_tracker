@@ -1,11 +1,65 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Statistics - Cricket Tracker</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .user-email {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-right: 1rem;
+        }
+
+        .btn-logout {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-logout:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .loading-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -22,6 +76,10 @@
                 <li><a href="/matches/add">Add Match</a></li>
                 <li><a href="/matches/history">History</a></li>
                 <li><a href="/matches/statistics">Statistics</a></li>
+                <li class="user-profile" id="userProfile" style="display: none;">
+                    <span class="user-email" id="userEmail"></span>
+                    <button class="btn-logout" id="logoutBtn">Logout</button>
+                </li>
             </ul>
         </div>
     </nav>
@@ -35,160 +93,147 @@
                 <p class="page-subtitle">Comprehensive analysis of your cricket performance</p>
             </div>
 
-            <!-- Overall Statistics -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">🎯</div>
-                    <div class="stat-label">Total Matches</div>
-                    <div class="stat-value" th:text="${stats.totalMatches}">0</div>
-                </div>
-
-                <div class="stat-card success">
-                    <div class="stat-icon">🏃</div>
-                    <div class="stat-label">Total Runs</div>
-                    <div class="stat-value" th:text="${stats.totalRuns}">0</div>
-                </div>
-
-                <div class="stat-card warning">
-                    <div class="stat-icon">🎳</div>
-                    <div class="stat-label">Total Wickets</div>
-                    <div class="stat-value" th:text="${stats.totalWickets}">0</div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon">🧤</div>
-                    <div class="stat-label">Total Catches</div>
-                    <div class="stat-value" th:text="${stats.totalCatches}">0</div>
-                </div>
+            <!-- Loading State -->
+            <div id="loadingState" class="loading-container">
+                <div class="spinner"></div>
             </div>
 
-            <!-- Batting Statistics -->
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">🏏 Batting Statistics</h2>
-                </div>
+            <!-- Main Content -->
+            <div id="mainContent" style="display: none;">
+                <!-- Overall Statistics -->
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-label">Batting Average</div>
-                        <div class="stat-value" th:text="${#numbers.formatDecimal(stats.overallBattingAverage, 1, 2)}">
-                            0.00</div>
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-label">Total Matches</div>
+                        <div class="stat-value" id="totalMatches">0</div>
                     </div>
 
                     <div class="stat-card success">
-                        <div class="stat-label">Strike Rate</div>
-                        <div class="stat-value" th:text="${#numbers.formatDecimal(stats.overallStrikeRate, 1, 2)}">0.00
-                        </div>
+                        <div class="stat-icon">🏃</div>
+                        <div class="stat-label">Total Runs</div>
+                        <div class="stat-value" id="totalRuns">0</div>
                     </div>
 
                     <div class="stat-card warning">
-                        <div class="stat-label">Highest Score</div>
-                        <div class="stat-value" th:text="${stats.highestScore}">0</div>
+                        <div class="stat-icon">🎳</div>
+                        <div class="stat-label">Total Wickets</div>
+                        <div class="stat-value" id="totalWickets">0</div>
                     </div>
 
                     <div class="stat-card">
-                        <div class="stat-label">Total Balls Faced</div>
-                        <div class="stat-value" th:text="${stats.totalBallsFaced}">0</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bowling Statistics -->
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">🎳 Bowling Statistics</h2>
-                </div>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-label">Bowling Average</div>
-                        <div class="stat-value" th:text="${#numbers.formatDecimal(stats.overallBowlingAverage, 1, 2)}">
-                            0.00</div>
-                    </div>
-
-                    <div class="stat-card success">
-                        <div class="stat-label">Economy Rate</div>
-                        <div class="stat-value" th:text="${#numbers.formatDecimal(stats.overallEconomyRate, 1, 2)}">0.00
-                        </div>
-                    </div>
-
-                    <div class="stat-card warning">
-                        <div class="stat-label">Best Bowling</div>
-                        <div class="stat-value" th:text="${stats.bestBowlingWickets} + '/...'">0</div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-label">Total Overs</div>
-                        <div class="stat-value" th:text="${#numbers.formatDecimal(stats.totalOversBowled, 1, 1)}">0.0
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Fielding Statistics -->
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">🧤 Fielding Statistics</h2>
-                </div>
-                <div class="stats-grid">
-                    <div class="stat-card">
+                        <div class="stat-icon">🧤</div>
                         <div class="stat-label">Total Catches</div>
-                        <div class="stat-value" th:text="${stats.totalCatches}">0</div>
-                    </div>
-
-                    <div class="stat-card success">
-                        <div class="stat-label">Most Catches in Match</div>
-                        <div class="stat-value" th:text="${stats.mostCatches}">0</div>
-                    </div>
-
-                    <div class="stat-card warning">
-                        <div class="stat-label">Catches per Match</div>
-                        <div class="stat-value"
-                            th:text="${stats.totalMatches > 0 ? #numbers.formatDecimal(stats.totalCatches * 1.0 / stats.totalMatches, 1, 2) : '0.00'}">
-                            0.00</div>
+                        <div class="stat-value" id="totalCatches">0</div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Performance Summary -->
-            <div class="card" th:if="${!matches.isEmpty()}">
-                <div class="card-header">
-                    <h2 class="card-title">📈 Performance Summary</h2>
-                </div>
-                <div style="padding: 1rem;">
-                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
-                        You have played <strong th:text="${stats.totalMatches}">0</strong> matches,
-                        scoring a total of <strong th:text="${stats.totalRuns}">0</strong> runs
-                        and taking <strong th:text="${stats.totalWickets}">0</strong> wickets.
-                    </p>
-                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
-                        Your batting average is <strong
-                            th:text="${#numbers.formatDecimal(stats.overallBattingAverage, 1, 2)}">0.00</strong>
-                        with a strike rate of <strong
-                            th:text="${#numbers.formatDecimal(stats.overallStrikeRate, 1, 2)}">0.00</strong>.
-                    </p>
-                    <p style="color: var(--text-secondary);" th:if="${stats.totalWickets > 0}">
-                        As a bowler, your average is <strong
-                            th:text="${#numbers.formatDecimal(stats.overallBowlingAverage, 1, 2)}">0.00</strong>
-                        with an economy rate of <strong
-                            th:text="${#numbers.formatDecimal(stats.overallEconomyRate, 1, 2)}">0.00</strong>.
-                    </p>
-                </div>
-            </div>
+                <!-- Batting Statistics -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">🏏 Batting Statistics</h2>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Batting Average</div>
+                            <div class="stat-value" id="battingAverage">0.00</div>
+                        </div>
 
-            <!-- Empty State -->
-            <div class="card" th:if="${matches.isEmpty()}">
-                <div class="empty-state">
-                    <div class="empty-state-icon">📊</div>
-                    <div class="empty-state-text">No statistics available</div>
-                    <p>Start adding matches to see your performance statistics!</p>
-                    <a href="/matches/add" class="btn btn-primary">Add Your First Match</a>
-                </div>
-            </div>
+                        <div class="stat-card success">
+                            <div class="stat-label">Strike Rate</div>
+                            <div class="stat-value" id="strikeRate">0.00</div>
+                        </div>
 
-            <!-- Quick Actions -->
-            <div class="btn-group" style="margin-top: 2rem;">
-                <a href="/matches/add" class="btn btn-primary">➕ Add New Match</a>
-                <a href="/matches/history" class="btn btn-secondary">📜 View History</a>
-                <a href="/" class="btn btn-success">🏠 Back to Dashboard</a>
+                        <div class="stat-card warning">
+                            <div class="stat-label">Highest Score</div>
+                            <div class="stat-value" id="highestScore">0</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-label">Total Balls Faced</div>
+                            <div class="stat-value" id="totalBallsFaced">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bowling Statistics -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">🎳 Bowling Statistics</h2>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Bowling Average</div>
+                            <div class="stat-value" id="bowlingAverage">0.00</div>
+                        </div>
+
+                        <div class="stat-card success">
+                            <div class="stat-label">Economy Rate</div>
+                            <div class="stat-value" id="economyRate">0.00</div>
+                        </div>
+
+                        <div class="stat-card warning">
+                            <div class="stat-label">Best Bowling</div>
+                            <div class="stat-value" id="bestBowling">0/...</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-label">Total Overs</div>
+                            <div class="stat-value" id="totalOvers">0.0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fielding Statistics -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">🧤 Fielding Statistics</h2>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Total Catches</div>
+                            <div class="stat-value" id="totalCatchesFielding">0</div>
+                        </div>
+
+                        <div class="stat-card success">
+                            <div class="stat-label">Most Catches in Match</div>
+                            <div class="stat-value" id="mostCatches">0</div>
+                        </div>
+
+                        <div class="stat-card warning">
+                            <div class="stat-label">Catches per Match</div>
+                            <div class="stat-value" id="catchesPerMatch">0.00</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Summary -->
+                <div class="card" id="performanceSummary" style="display: none;">
+                    <div class="card-header">
+                        <h2 class="card-title">📈 Performance Summary</h2>
+                    </div>
+                    <div style="padding: 1rem;">
+                        <p style="color: var(--text-secondary); margin-bottom: 1rem;" id="summaryText1"></p>
+                        <p style="color: var(--text-secondary); margin-bottom: 1rem;" id="summaryText2"></p>
+                        <p style="color: var(--text-secondary);" id="summaryText3"></p>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div class="card" id="emptyState" style="display: none;">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📊</div>
+                        <div class="empty-state-text">No statistics available</div>
+                        <p>Start adding matches to see your performance statistics!</p>
+                        <a href="/matches/add" class="btn btn-primary">Add Your First Match</a>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="btn-group" style="margin-top: 2rem;">
+                    <a href="/matches/add" class="btn btn-primary">➕ Add New Match</a>
+                    <a href="/matches/history" class="btn btn-secondary">📜 View History</a>
+                    <a href="/" class="btn btn-success">🏠 Back to Dashboard</a>
+                </div>
             </div>
         </div>
     </main>
@@ -200,7 +245,96 @@
         </div>
     </footer>
 
-    <script th:src="@{/js/script.js}"></script>
+    <script src="/js/script.js"></script>
+    <script type="module">
+        import { requireAuth, signOut, calculatePlayerStatistics } from '/js/firestore-service.js';
+
+        // Initialize page
+        async function initializePage() {
+            try {
+                const user = await requireAuth();
+                document.getElementById('userEmail').textContent = user.email;
+                document.getElementById('userProfile').style.display = 'flex';
+
+                await loadStatistics();
+
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+            } catch (error) {
+                console.error('Initialization error:', error);
+            }
+        }
+
+        // Load statistics
+        async function loadStatistics() {
+            try {
+                const stats = await calculatePlayerStatistics();
+
+                // Update all statistics
+                document.getElementById('totalMatches').textContent = stats.totalMatches;
+                document.getElementById('totalRuns').textContent = stats.totalRuns;
+                document.getElementById('totalWickets').textContent = stats.totalWickets;
+                document.getElementById('totalCatches').textContent = stats.totalCatches;
+
+                document.getElementById('battingAverage').textContent = stats.overallBattingAverage;
+                document.getElementById('strikeRate').textContent = stats.overallStrikeRate;
+                document.getElementById('highestScore').textContent = stats.highestScore;
+                document.getElementById('totalBallsFaced').textContent = stats.totalBallsFaced;
+
+                document.getElementById('bowlingAverage').textContent = stats.overallBowlingAverage;
+                document.getElementById('economyRate').textContent = stats.overallBowlingEconomy;
+                document.getElementById('bestBowling').textContent = stats.bestBowlingWickets + '/...';
+                document.getElementById('totalOvers').textContent = stats.totalOversBowled.toFixed(1);
+
+                document.getElementById('totalCatchesFielding').textContent = stats.totalCatches;
+                document.getElementById('mostCatches').textContent = stats.mostCatches;
+                const catchesPerMatch = stats.totalMatches > 0 ? (stats.totalCatches / stats.totalMatches).toFixed(2) : '0.00';
+                document.getElementById('catchesPerMatch').textContent = catchesPerMatch;
+
+                // Show performance summary or empty state
+                if (stats.totalMatches > 0) {
+                    document.getElementById('performanceSummary').style.display = 'block';
+                    document.getElementById('emptyState').style.display = 'none';
+
+                    // Update summary text
+                    document.getElementById('summaryText1').innerHTML =
+                        `You have played <strong>${stats.totalMatches}</strong> matches, ` +
+                        `scoring a total of <strong>${stats.totalRuns}</strong> runs ` +
+                        `and taking <strong>${stats.totalWickets}</strong> wickets.`;
+
+                    document.getElementById('summaryText2').innerHTML =
+                        `Your batting average is <strong>${stats.overallBattingAverage}</strong> ` +
+                        `with a strike rate of <strong>${stats.overallStrikeRate}</strong>.`;
+
+                    if (stats.totalWickets > 0) {
+                        document.getElementById('summaryText3').innerHTML =
+                            `As a bowler, your average is <strong>${stats.overallBowlingAverage}</strong> ` +
+                            `with an economy rate of <strong>${stats.overallBowlingEconomy}</strong>.`;
+                        document.getElementById('summaryText3').style.display = 'block';
+                    } else {
+                        document.getElementById('summaryText3').style.display = 'none';
+                    }
+                } else {
+                    document.getElementById('performanceSummary').style.display = 'none';
+                    document.getElementById('emptyState').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+            }
+        }
+
+        // Handle logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                await signOut();
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        });
+
+        // Initialize
+        initializePage();
+    </script>
 </body>
 
 </html>

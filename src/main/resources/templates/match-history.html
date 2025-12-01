@@ -1,11 +1,76 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Match History - Cricket Tracker</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .user-email {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-right: 1rem;
+        }
+
+        .btn-logout {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-logout:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .loading-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .alert {
+            display: none;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .alert.show {
+            display: block;
+        }
+    </style>
 </head>
 
 <body>
@@ -22,6 +87,10 @@
                 <li><a href="/matches/add">Add Match</a></li>
                 <li><a href="/matches/history">History</a></li>
                 <li><a href="/matches/statistics">Statistics</a></li>
+                <li class="user-profile" id="userProfile" style="display: none;">
+                    <span class="user-email" id="userEmail"></span>
+                    <button class="btn-logout" id="logoutBtn">Logout</button>
+                </li>
             </ul>
         </div>
     </nav>
@@ -36,82 +105,58 @@
             </div>
 
             <!-- Alert Messages -->
-            <div th:if="${successMessage}" class="alert alert-success">
-                <span th:text="${successMessage}"></span>
-            </div>
-            <div th:if="${errorMessage}" class="alert alert-error">
-                <span th:text="${errorMessage}"></span>
+            <div id="successAlert" class="alert alert-success"></div>
+            <div id="errorAlert" class="alert alert-error"></div>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="loading-container">
+                <div class="spinner"></div>
             </div>
 
-            <!-- Matches Table -->
-            <div class="card" th:if="${!matches.isEmpty()}">
-                <div class="card-header">
-                    <h2 class="card-title">All Matches</h2>
+            <!-- Main Content -->
+            <div id="mainContent" style="display: none;">
+                <!-- Matches Table -->
+                <div class="card" id="matchesCard" style="display: none;">
+                    <div class="card-header">
+                        <h2 class="card-title">All Matches</h2>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Opponent</th>
+                                    <th>Runs</th>
+                                    <th>Balls</th>
+                                    <th>SR</th>
+                                    <th>Wickets</th>
+                                    <th>Overs</th>
+                                    <th>Econ</th>
+                                    <th>Catches</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="matchesTableBody">
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Opponent</th>
-                                <th>Runs</th>
-                                <th>Balls</th>
-                                <th>SR</th>
-                                <th>Wickets</th>
-                                <th>Overs</th>
-                                <th>Econ</th>
-                                <th>Catches</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="match : ${matches}">
-                                <td th:text="${#temporals.format(match.matchDate, 'dd MMM yyyy')}"></td>
-                                <td th:text="${match.opponentName}"></td>
-                                <td th:text="${match.runsScored}"></td>
-                                <td th:text="${match.ballsFaced}"></td>
-                                <td th:text="${#numbers.formatDecimal(match.strikeRate, 1, 2)}"></td>
-                                <td th:text="${match.wicketsTaken}"></td>
-                                <td th:text="${#numbers.formatDecimal(match.oversBowled, 1, 1)}"></td>
-                                <td th:text="${#numbers.formatDecimal(match.economyRate, 1, 2)}"></td>
-                                <td th:text="${match.catches}"></td>
-                                <td>
-                                    <div style="display: flex; gap: 0.5rem;">
-                                        <a th:href="@{/matches/edit/{id}(id=${match.id})}" class="btn btn-secondary"
-                                            style="padding: 0.5rem 1rem; font-size: 0.875rem;">
-                                            ✏️ Edit
-                                        </a>
-                                        <button
-                                            onclick="showDeleteModal([[${match.id}]], '[[${match.opponentName}]]', '[[${#temporals.format(match.matchDate, 'dd MMM yyyy')}]]')"
-                                            class="btn btn-danger" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
-                                            🗑️ Delete
-                                        </button>
-                                        <form th:id="'deleteForm' + ${match.id}"
-                                            th:action="@{/matches/delete/{id}(id=${match.id})}" method="post"
-                                            style="display: none;">
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
 
-            <!-- Empty State -->
-            <div class="card" th:if="${matches.isEmpty()}">
-                <div class="empty-state">
-                    <div class="empty-state-icon">📋</div>
-                    <div class="empty-state-text">No matches found</div>
-                    <p>You haven't recorded any matches yet. Start tracking your performance!</p>
-                    <a href="/matches/add" class="btn btn-primary">Add Your First Match</a>
+                <!-- Empty State -->
+                <div class="card" id="emptyState" style="display: none;">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <div class="empty-state-text">No matches found</div>
+                        <p>You haven't recorded any matches yet. Start tracking your performance!</p>
+                        <a href="/matches/add" class="btn btn-primary">Add Your First Match</a>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Quick Actions -->
-            <div class="btn-group" style="margin-top: 2rem;">
-                <a href="/matches/add" class="btn btn-primary">➕ Add New Match</a>
-                <a href="/" class="btn btn-secondary">🏠 Back to Dashboard</a>
+                <!-- Quick Actions -->
+                <div class="btn-group" style="margin-top: 2rem;">
+                    <a href="/matches/add" class="btn btn-primary">➕ Add New Match</a>
+                    <a href="/" class="btn btn-secondary">🏠 Back to Dashboard</a>
+                </div>
             </div>
         </div>
     </main>
@@ -139,7 +184,163 @@
         </div>
     </footer>
 
-    <script th:src="@{/js/script.js}"></script>
+    <script src="/js/script.js"></script>
+    <script type="module">
+        import { requireAuth, signOut, getAllMatches, deleteMatch } from '/js/firestore-service.js';
+
+        let allMatches = [];
+
+        // Initialize page
+        async function initializePage() {
+            try {
+                const user = await requireAuth();
+                document.getElementById('userEmail').textContent = user.email;
+                document.getElementById('userProfile').style.display = 'flex';
+
+                await loadMatches();
+
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+            } catch (error) {
+                console.error('Initialization error:', error);
+            }
+        }
+
+        // Load all matches
+        async function loadMatches() {
+            try {
+                allMatches = await getAllMatches();
+
+                if (allMatches.length > 0) {
+                    displayMatches(allMatches);
+                    document.getElementById('matchesCard').style.display = 'block';
+                    document.getElementById('emptyState').style.display = 'none';
+                } else {
+                    document.getElementById('matchesCard').style.display = 'none';
+                    document.getElementById('emptyState').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading matches:', error);
+                showAlert('Error loading matches', false);
+            }
+        }
+
+        // Display matches in table
+        function displayMatches(matches) {
+            const tbody = document.getElementById('matchesTableBody');
+            tbody.innerHTML = '';
+
+            matches.forEach(match => {
+                const row = document.createElement('tr');
+
+                const date = new Date(match.matchDate);
+                const formattedDate = date.toLocaleDateString('en-US', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+
+                row.innerHTML = `
+                    <td>${formattedDate}</td>
+                    <td>${match.opponentName}</td>
+                    <td>${match.runsScored}</td>
+                    <td>${match.ballsFaced}</td>
+                    <td>${match.strikeRate || '0.00'}</td>
+                    <td>${match.wicketsTaken}</td>
+                    <td>${parseFloat(match.oversBowled).toFixed(1)}</td>
+                    <td>${match.bowlingEconomy || '0.00'}</td>
+                    <td>${match.catches}</td>
+                    <td>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <a href="/matches/edit?id=${match.id}" class="btn btn-secondary" 
+                               style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                                ✏️ Edit
+                            </a>
+                            <button onclick="showDeleteModal('${match.id}', '${match.opponentName}', '${formattedDate}')" 
+                                    class="btn btn-danger" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                                🗑️ Delete
+                            </button>
+                        </div>
+                    </td>
+                `;
+
+                tbody.appendChild(row);
+            });
+        }
+
+        // Show alert
+        function showAlert(message, isSuccess = false) {
+            const successAlert = document.getElementById('successAlert');
+            const errorAlert = document.getElementById('errorAlert');
+
+            if (isSuccess) {
+                successAlert.textContent = message;
+                successAlert.classList.add('show');
+                errorAlert.classList.remove('show');
+            } else {
+                errorAlert.textContent = message;
+                errorAlert.classList.add('show');
+                successAlert.classList.remove('show');
+            }
+
+            setTimeout(() => {
+                successAlert.classList.remove('show');
+                errorAlert.classList.remove('show');
+            }, 5000);
+        }
+
+        // Delete modal functions
+        let matchToDelete = null;
+
+        window.showDeleteModal = function (matchId, opponentName, matchDate) {
+            matchToDelete = matchId;
+            const modal = document.getElementById('deleteModal');
+            const modalBody = document.getElementById('deleteModalBody');
+            modalBody.innerHTML = `Are you sure you want to delete the match against <strong>${opponentName}</strong> on <strong>${matchDate}</strong>? This action cannot be undone.`;
+            modal.classList.add('active');
+        };
+
+        window.closeDeleteModal = function () {
+            const modal = document.getElementById('deleteModal');
+            modal.classList.remove('active');
+            matchToDelete = null;
+        };
+
+        // Confirm delete
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+            if (!matchToDelete) return;
+
+            try {
+                await deleteMatch(matchToDelete);
+                closeDeleteModal();
+                showAlert('Match deleted successfully!', true);
+                await loadMatches();
+            } catch (error) {
+                console.error('Error deleting match:', error);
+                showAlert('Failed to delete match', false);
+            }
+        });
+
+        // Handle logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                await signOut();
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        });
+
+        // Close modal on outside click
+        window.addEventListener('click', function (event) {
+            const modal = document.getElementById('deleteModal');
+            if (event.target === modal) {
+                closeDeleteModal();
+            }
+        });
+
+        // Initialize
+        initializePage();
+    </script>
 </body>
 
 </html>
